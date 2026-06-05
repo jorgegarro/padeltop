@@ -9,31 +9,44 @@
  * players: rank 1 + rank 4 vs rank 2 + rank 3 within each group of 4.
  */
 
+// Sentinel partner used to pad an odd roster to an even size. Whoever the circle
+// method pairs with this marker sits out (byes) that round. It must never appear
+// in a real match team.
+const BYE = Symbol('bye');
+
 export function generateAmericanoRounds(players, courts) {
-  const n = players.length;
-  // We need groups of 4. Pad to multiple of 4 if needed (bye players).
   const rounds = [];
   const ids = players.map((p) => p.id);
 
-  // Use a round-robin pairing algorithm for Americano
-  // Each round: split ids into two halves; pair index i with index n-1-i as teams,
-  // then rotate all except the first.
-  let arr = [...ids];
-  const totalRounds = n - 1; // standard round-robin rounds
+  // Phantom-bye round-robin (circle method). Pad odd rosters to an even size so the
+  // rotation's guarantee holds: across all rounds every unordered partner pair occurs
+  // exactly once. For odd counts this also makes each player bye exactly once.
+  const arr = [...ids];
+  if (arr.length % 2 === 1) arr.push(BYE);
+
+  const paddedCount = arr.length;
+  const totalRounds = paddedCount - 1;
 
   for (let r = 0; r < totalRounds; r++) {
-    const matches = [];
+    // Form partner pairs by coupling index i with paddedCount-1-i.
     const pairs = [];
-    for (let i = 0; i < Math.floor(arr.length / 2); i++) {
-      pairs.push([arr[i], arr[arr.length - 1 - i]]);
+    for (let i = 0; i < paddedCount / 2; i++) {
+      pairs.push([arr[i], arr[paddedCount - 1 - i]]);
     }
-    // Group pairs into matches (2 pairs per match = 4 players per court)
-    for (let i = 0; i < pairs.length - 1; i += 2) {
-      const courtIndex = Math.floor(i / 2) % courts;
+
+    // Drop any pair containing the BYE marker — those player(s) sit out this round.
+    const realPairs = pairs.filter((pair) => !pair.includes(BYE));
+
+    // Group real pairs two-at-a-time into matches (two pairs = four players = one court).
+    // A trailing leftover pair (odd number of real pairs, e.g. 6/10 players) also byes.
+    const matches = [];
+    for (let i = 0; i + 1 < realPairs.length; i += 2) {
+      const matchIndex = i / 2;
+      const courtIndex = matchIndex % courts;
       matches.push({
-        id: `r${r}m${i / 2}`,
-        team1: pairs[i],
-        team2: pairs[i + 1],
+        id: `r${r}m${matchIndex}`,
+        team1: realPairs[i],
+        team2: realPairs[i + 1],
         court: courtIndex + 1,
         score1: null,
         score2: null,
@@ -42,8 +55,8 @@ export function generateAmericanoRounds(players, courts) {
     }
     if (matches.length > 0) rounds.push({ round: r + 1, matches });
 
-    // Rotate: keep arr[0] fixed, rotate the rest
-    arr = [arr[0], arr[arr.length - 1], ...arr.slice(1, arr.length - 1)];
+    // Rotate: keep arr[0] fixed, rotate the rest.
+    arr.splice(1, 0, arr.pop());
   }
   return rounds;
 }

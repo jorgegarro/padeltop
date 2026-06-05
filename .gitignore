@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Personal Claude Code instructions (private)
+CLAUDE.local.md
+
+# Spec and plan artifacts (local planning, not shared)
+_specs/
+_plans/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

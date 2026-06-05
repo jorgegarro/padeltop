@@ -23,7 +23,14 @@ export default function Setup({ onStart }) {
   const removePlayer = (id) => setPlayers((prev) => prev.filter((p) => p.id !== id));
 
   const minPlayers = 4;
-  const canProceed = players.length >= minPlayers && players.length % 4 === 0;
+  const atMinimum = players.length >= minPlayers;
+  const isMultipleOf4 = players.length % 4 === 0;
+  // Mexicano re-pairs by ranking each round and can't rotate byes fairly, so it
+  // requires full groups of 4. Americano handles any count via rotating byes.
+  const requiresMultipleOf4 = config.type === 'mexicano';
+  const canProceed = atMinimum && (!requiresMultipleOf4 || isMultipleOf4);
+  const showByeNote = config.type === 'americano' && atMinimum && !isMultipleOf4;
+  const showMexicanoBlock = requiresMultipleOf4 && atMinimum && !isMultipleOf4;
 
   const handleStart = () => {
     onStart({ ...config, players });
@@ -137,7 +144,7 @@ export default function Setup({ onStart }) {
             <Users className="w-8 h-8 text-green-400" />
           </div>
           <h1 className="text-3xl font-bold text-white">Add Players</h1>
-          <p className="text-slate-400 mt-1">Minimum 4, in multiples of 4</p>
+          <p className="text-slate-400 mt-1">Minimum 4 players</p>
         </div>
 
         <div className="bg-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
@@ -176,9 +183,14 @@ export default function Setup({ onStart }) {
 
           <div className="text-sm text-slate-400">
             {players.length} player{players.length !== 1 ? 's' : ''} added
-            {players.length >= 4 && players.length % 4 !== 0 && (
+            {showByeNote && (
               <span className="text-yellow-400 ml-2">
-                (need {4 - (players.length % 4)} more for full courts)
+                (not a multiple of 4 — some players rotate as byes each round)
+              </span>
+            )}
+            {showMexicanoBlock && (
+              <span className="text-yellow-400 ml-2">
+                (Mexicano needs multiples of 4 — add {4 - (players.length % 4)} more)
               </span>
             )}
           </div>

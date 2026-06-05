@@ -5,4 +5,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/padeltop/',
+  test: {
+    environment: 'node',
+    include: ['tests/**/*.test.js'],
+  },
 })

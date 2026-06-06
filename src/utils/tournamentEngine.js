@@ -106,7 +106,7 @@ export function computeLeaderboard(players, rounds) {
       wins: wins[p.id] || 0,
       played: played[p.id] || 0,
     }))
-    .sort((a, b) => b.score - a.score || b.wins - a.wins);
+    .sort((a, b) => b.wins - a.wins || b.score - a.score);
 }
 
 export function getScoresMap(players, rounds) {

@@ -26,8 +26,8 @@ export default function Leaderboard({ players, rounds }) {
             <div className="flex items-center justify-center w-6">{medal(i)}</div>
             <div className="flex-1 font-medium text-white">{p.name}</div>
             <div className="text-right">
-              <div className="text-green-400 font-bold text-lg leading-none">{p.score}</div>
-              <div className="text-slate-500 text-xs mt-0.5">{p.wins}W · {p.played}P</div>
+              <div className="text-green-400 font-bold text-lg leading-none">{p.wins}W</div>
+              <div className="text-slate-500 text-xs mt-0.5">{p.score} pts · {p.played}P</div>
             </div>
           </div>
         ))}

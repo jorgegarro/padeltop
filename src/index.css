@@ -2,4 +2,14 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: system-ui, sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
-#root { min-height: 100vh; }
+#root { min-height: 100vh; position: relative; z-index: 1; }
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: url('/padeltop/bg.jpg') center center / cover no-repeat;
+  opacity: 0.15;
+  pointer-events: none;
+}

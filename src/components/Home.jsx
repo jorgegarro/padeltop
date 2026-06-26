@@ -1,4 +1,4 @@
-import { Trophy, Users, History, Plus, Play } from 'lucide-react';
+import { Trophy, Users, History, Plus, Play, BarChart3 } from 'lucide-react';
 
 export default function Home({ onNavigate, historyCount, playerCount, activeTournament }) {
   return (
@@ -59,6 +59,22 @@ export default function Home({ onNavigate, historyCount, playerCount, activeTour
                 <div className="text-sm text-slate-400">
                   {playerCount < 4 ? 'Need at least 4 players' : 'Create and start a tournament'}
                 </div>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => onNavigate('stats')}
+            disabled={historyCount === 0}
+            className="w-full bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-orange-500/50 disabled:opacity-40 disabled:cursor-not-allowed rounded-2xl p-5 text-left transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-orange-500/15 flex items-center justify-center group-hover:bg-orange-500/25 transition-colors">
+                <BarChart3 className="w-6 h-6 text-orange-400" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-white">Player Stats</div>
+                <div className="text-sm text-slate-400">All-time stats across tournaments</div>
               </div>
             </div>
           </button>

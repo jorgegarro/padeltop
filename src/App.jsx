@@ -4,6 +4,7 @@ import PlayersManager from './components/PlayersManager';
 import Setup from './components/Setup';
 import Tournament from './components/Tournament';
 import TournamentHistory from './components/TournamentHistory';
+import PlayerStats from './components/PlayerStats';
 import { generateAmericanoRounds, generateMexicanoRound } from './utils/tournamentEngine';
 import {
   saveTournament, loadTournament, clearTournament,
@@ -103,6 +104,16 @@ export default function App() {
       <Setup
         registeredPlayers={players}
         onStart={handleStartTournament}
+        onBack={() => setScreen('home')}
+      />
+    );
+  }
+
+  if (screen === 'stats') {
+    return (
+      <PlayerStats
+        allPlayers={players}
+        allTournaments={history}
         onBack={() => setScreen('home')}
       />
     );

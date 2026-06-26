@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Trophy, Calendar, Home, Users } from 'lucide-react';
+import { Trophy, Calendar, Home, Users, User } from 'lucide-react';
 import Schedule from './Schedule';
 import Leaderboard from './Leaderboard';
+import PlayerHistory from './PlayerHistory';
 import { generateMexicanoRound, getScoresMap } from '../utils/tournamentEngine';
 
-const TABS = ['Leaderboard', 'Schedule'];
+const TABS = ['Leaderboard', 'Schedule', 'Players'];
 
 export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
   const [tab, setTab] = useState('Leaderboard');
@@ -74,13 +75,15 @@ export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
               tab === t ? 'bg-green-500 text-white' : 'text-slate-400 hover:text-white'
             }`}
           >
-            {t === 'Leaderboard' ? <Trophy className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
+            {t === 'Leaderboard' ? <Trophy className="w-4 h-4" /> : t === 'Schedule' ? <Calendar className="w-4 h-4" /> : <User className="w-4 h-4" />}
             {t}
           </button>
         ))}
       </div>
 
       {tab === 'Leaderboard' && <Leaderboard players={players} rounds={rounds} />}
+
+      {tab === 'Players' && <PlayerHistory players={players} rounds={rounds} />}
 
       {tab === 'Schedule' && (
         <Schedule

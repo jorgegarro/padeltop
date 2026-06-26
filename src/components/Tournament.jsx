@@ -56,13 +56,9 @@ export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => {
-              if (window.confirm('Save and go home? You can resume this tournament from history.')) {
-                onFinish();
-              }
-            }}
+            onClick={onHome}
             className="p-2 text-slate-500 hover:text-green-400 transition-colors"
-            title="Save & Home"
+            title="Home"
           >
             <Home className="w-5 h-5" />
           </button>

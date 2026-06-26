@@ -83,6 +83,7 @@ export default function App() {
         onNavigate={setScreen}
         historyCount={history.length}
         playerCount={players.length}
+        activeTournament={tournament}
       />
     );
   }

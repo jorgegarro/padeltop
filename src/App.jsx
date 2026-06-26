@@ -6,29 +6,37 @@ import Tournament from './components/Tournament';
 import TournamentHistory from './components/TournamentHistory';
 import PlayerStats from './components/PlayerStats';
 import { generateAmericanoRounds, generateMexicanoRound } from './utils/tournamentEngine';
-import {
-  saveTournament, loadTournament, clearTournament,
-  savePlayers, loadPlayers,
-  loadHistory, saveTournamentToHistory, deleteFromHistory,
-} from './utils/storage';
+import { api } from './utils/api';
 import './index.css';
 
 export default function App() {
   const [screen, setScreen] = useState('home');
-  const [players, setPlayers] = useState(() => loadPlayers());
-  const [tournament, setTournament] = useState(() => loadTournament());
-  const [history, setHistory] = useState(() => loadHistory());
+  const [players, setPlayers] = useState([]);
+  const [tournament, setTournament] = useState(null);
+  const [history, setHistory] = useState([]);
   const [viewingHistory, setViewingHistory] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { savePlayers(players); }, [players]);
-  useEffect(() => { if (tournament) saveTournament(tournament); }, [tournament]);
-
-  // Resume active tournament on load
   useEffect(() => {
-    if (tournament) setScreen('tournament');
+    Promise.all([api.getPlayers(), api.getTournaments(), api.getActive()])
+      .then(([p, h, active]) => {
+        setPlayers(p);
+        setHistory(h);
+        if (active) {
+          setTournament(active);
+          setScreen('tournament');
+        }
+      })
+      .catch((e) => console.error('Failed to load data:', e))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleStartTournament = (config) => {
+  const handlePlayersUpdate = async (updated) => {
+    setPlayers(updated);
+    await api.syncPlayers(updated);
+  };
+
+  const handleStartTournament = async (config) => {
     const { players: tPlayers, type, courts } = config;
     let rounds;
     if (type === 'americano') {
@@ -40,23 +48,23 @@ export default function App() {
     }
     const t = { ...config, id: crypto.randomUUID(), createdAt: new Date().toISOString(), rounds };
     setTournament(t);
-    saveTournamentToHistory(t);
-    setHistory(loadHistory());
+    await api.setActive(t);
+    setHistory((prev) => [t, ...prev]);
     setScreen('tournament');
   };
 
-  const handleUpdateTournament = (updated) => {
+  const handleUpdateTournament = async (updated) => {
     setTournament(updated);
-    saveTournamentToHistory(updated);
-    setHistory(loadHistory());
+    await api.setActive(updated);
+    setHistory((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
   };
 
-  const handleFinishTournament = () => {
+  const handleFinishTournament = async () => {
     if (tournament) {
-      saveTournamentToHistory(tournament);
-      setHistory(loadHistory());
+      await api.saveTournament({ ...tournament, active: false });
+      setHistory((prev) => prev.map((t) => (t.id === tournament.id ? { ...tournament, active: false } : t)));
     }
-    clearTournament();
+    await api.clearActive();
     setTournament(null);
     setScreen('home');
   };
@@ -66,17 +74,21 @@ export default function App() {
     setScreen('view-history');
   };
 
-  const handleResumeHistorical = (t) => {
-    setTournament(t);
-    saveTournament(t);
-    setViewingHistory(null);
-    setScreen('tournament');
+  const handleDeleteHistorical = async (id) => {
+    await api.deleteTournament(id);
+    setHistory((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleDeleteHistorical = (id) => {
-    deleteFromHistory(id);
-    setHistory(loadHistory());
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-slate-400 text-sm">Loading PadelTOP...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (screen === 'home') {
     return (
@@ -93,7 +105,7 @@ export default function App() {
     return (
       <PlayersManager
         players={players}
-        onUpdate={setPlayers}
+        onUpdate={handlePlayersUpdate}
         onBack={() => setScreen('home')}
       />
     );
@@ -134,10 +146,10 @@ export default function App() {
     return (
       <Tournament
         tournament={viewingHistory}
-        onUpdate={(updated) => {
+        onUpdate={async (updated) => {
           setViewingHistory(updated);
-          saveTournamentToHistory(updated);
-          setHistory(loadHistory());
+          await api.saveTournament(updated);
+          setHistory((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
         }}
         onFinish={() => {
           setViewingHistory(null);
@@ -162,5 +174,5 @@ export default function App() {
     );
   }
 
-  return <Home onNavigate={setScreen} historyCount={history.length} playerCount={players.length} />;
+  return <Home onNavigate={setScreen} historyCount={history.length} playerCount={players.length} activeTournament={tournament} />;
 }

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Trophy, Calendar, RotateCcw, Users } from 'lucide-react';
+import { Trophy, Calendar, Home, Users } from 'lucide-react';
 import Schedule from './Schedule';
 import Leaderboard from './Leaderboard';
 import { generateMexicanoRound, getScoresMap } from '../utils/tournamentEngine';
 
 const TABS = ['Leaderboard', 'Schedule'];
 
-export default function Tournament({ tournament, onUpdate, onReset }) {
+export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
   const [tab, setTab] = useState('Leaderboard');
   const { name, type, players, rounds, courts, pointsPerMatch } = tournament;
 
@@ -37,7 +37,6 @@ export default function Tournament({ tournament, onUpdate, onReset }) {
 
   return (
     <div className="min-h-screen p-4 max-w-2xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">{name}</h1>
@@ -55,16 +54,21 @@ export default function Tournament({ tournament, onUpdate, onReset }) {
             </span>
           </div>
         </div>
-        <button
-          onClick={onReset}
-          className="p-2 text-slate-500 hover:text-red-400 transition-colors"
-          title="New tournament"
-        >
-          <RotateCcw className="w-5 h-5" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              if (window.confirm('Save and go home? You can resume this tournament from history.')) {
+                onFinish();
+              }
+            }}
+            className="p-2 text-slate-500 hover:text-green-400 transition-colors"
+            title="Save & Home"
+          >
+            <Home className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex bg-slate-800 rounded-xl p-1 mb-6">
         {TABS.map((t) => (
           <button
@@ -80,9 +84,7 @@ export default function Tournament({ tournament, onUpdate, onReset }) {
         ))}
       </div>
 
-      {tab === 'Leaderboard' && (
-        <Leaderboard players={players} rounds={rounds} />
-      )}
+      {tab === 'Leaderboard' && <Leaderboard players={players} rounds={rounds} />}
 
       {tab === 'Schedule' && (
         <Schedule

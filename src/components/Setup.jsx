@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Trophy, Users, Layout, Target, ChevronRight, Plus, X } from 'lucide-react';
+import { Trophy, Layout, Target, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 
-export default function Setup({ onStart }) {
-  const [step, setStep] = useState(1); // 1=config, 2=players
+export default function Setup({ registeredPlayers, onStart, onBack }) {
+  const [step, setStep] = useState(1);
   const [config, setConfig] = useState({
     name: '',
     courts: 2,
@@ -10,23 +10,29 @@ export default function Setup({ onStart }) {
     type: 'americano',
     rounds: 4,
   });
-  const [players, setPlayers] = useState([]);
-  const [newPlayer, setNewPlayer] = useState('');
+  const [selected, setSelected] = useState(new Set());
 
-  const addPlayer = () => {
-    const name = newPlayer.trim();
-    if (!name) return;
-    setPlayers((prev) => [...prev, { id: crypto.randomUUID(), name }]);
-    setNewPlayer('');
+  const toggle = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
-  const removePlayer = (id) => setPlayers((prev) => prev.filter((p) => p.id !== id));
+  const selectAll = () => {
+    if (selected.size === registeredPlayers.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(registeredPlayers.map((p) => p.id)));
+    }
+  };
 
-  const minPlayers = 4;
-  const canProceed = players.length >= minPlayers && players.length % 4 === 0;
+  const selectedPlayers = registeredPlayers.filter((p) => selected.has(p.id));
+  const canProceed = selectedPlayers.length >= 4 && selectedPlayers.length % 4 === 0;
 
   const handleStart = () => {
-    onStart({ ...config, players });
+    onStart({ ...config, players: selectedPlayers });
   };
 
   if (step === 1) {
@@ -37,15 +43,11 @@ export default function Setup({ onStart }) {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
               <Trophy className="w-8 h-8 text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold text-white">PadelTOP</h1>
-            <p className="text-slate-400 mt-1">Tournament Manager</p>
+            <h1 className="text-3xl font-bold text-white">New Tournament</h1>
+            <p className="text-slate-400 mt-1">Configure your tournament</p>
           </div>
 
           <div className="bg-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Target className="w-5 h-5 text-green-400" /> Tournament Setup
-            </h2>
-
             <div>
               <label className="block text-sm text-slate-400 mb-1">Tournament Name</label>
               <input
@@ -59,7 +61,7 @@ export default function Setup({ onStart }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-slate-400 mb-1">
-                  <Layout className="inline w-4 h-4 mr-1" />Courts Available
+                  <Layout className="inline w-4 h-4 mr-1" />Courts
                 </label>
                 <input
                   type="number" min="1" max="10"
@@ -70,7 +72,7 @@ export default function Setup({ onStart }) {
               </div>
               <div>
                 <label className="block text-sm text-slate-400 mb-1">
-                  <Target className="inline w-4 h-4 mr-1" />Points per Match
+                  <Target className="inline w-4 h-4 mr-1" />Points/Match
                 </label>
                 <input
                   type="number" min="1" max="100"
@@ -116,13 +118,21 @@ export default function Setup({ onStart }) {
               </div>
             )}
 
-            <button
-              disabled={!config.name}
-              onClick={() => setStep(2)}
-              className="w-full py-3 bg-green-500 hover:bg-green-400 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
-            >
-              Next: Add Players <ChevronRight className="w-4 h-4" />
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={onBack}
+                className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+              <button
+                disabled={!config.name}
+                onClick={() => setStep(2)}
+                className="flex-1 py-3 bg-green-500 hover:bg-green-400 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
+              >
+                Select Players <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -134,51 +144,54 @@ export default function Setup({ onStart }) {
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
-            <Users className="w-8 h-8 text-green-400" />
+            <Trophy className="w-8 h-8 text-green-400" />
           </div>
-          <h1 className="text-3xl font-bold text-white">Add Players</h1>
-          <p className="text-slate-400 mt-1">Minimum 4, in multiples of 4</p>
+          <h1 className="text-3xl font-bold text-white">Select Players</h1>
+          <p className="text-slate-400 mt-1">Pick players for this tournament (multiples of 4)</p>
         </div>
 
         <div className="bg-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
-          <div className="flex gap-2">
-            <input
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500"
-              placeholder="Player name"
-              value={newPlayer}
-              onChange={(e) => setNewPlayer(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
-            />
-            <button
-              onClick={addPlayer}
-              className="px-4 py-2 bg-green-500 hover:bg-green-400 text-white rounded-lg transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
-          </div>
+          {registeredPlayers.length === 0 ? (
+            <p className="text-slate-500 text-sm text-center py-4">
+              No players registered. Go back and add players first.
+            </p>
+          ) : (
+            <>
+              <button
+                onClick={selectAll}
+                className="text-sm text-green-400 hover:text-green-300 transition-colors"
+              >
+                {selected.size === registeredPlayers.length ? 'Deselect All' : 'Select All'}
+              </button>
 
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {players.length === 0 && (
-              <p className="text-slate-500 text-sm text-center py-4">No players yet…</p>
-            )}
-            {players.map((p, i) => (
-              <div key={p.id} className="flex items-center gap-3 bg-slate-700 rounded-lg px-3 py-2">
-                <span className="w-6 h-6 rounded-full bg-green-500/20 text-green-400 text-xs flex items-center justify-center font-bold">
-                  {i + 1}
-                </span>
-                <span className="flex-1 text-white">{p.name}</span>
-                <button onClick={() => removePlayer(p.id)} className="text-slate-500 hover:text-red-400 transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {registeredPlayers.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => toggle(p.id)}
+                    className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-all ${
+                      selected.has(p.id)
+                        ? 'bg-green-500/15 border border-green-500/40'
+                        : 'bg-slate-700 border border-transparent hover:border-slate-500'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                      selected.has(p.id) ? 'bg-green-500 border-green-500' : 'border-slate-500'
+                    }`}>
+                      {selected.has(p.id) && <Check className="w-3 h-3 text-white" />}
+                    </span>
+                    <span className="flex-1 text-white">{p.name}</span>
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
           <div className="text-sm text-slate-400">
-            {players.length} player{players.length !== 1 ? 's' : ''} added
-            {players.length >= 4 && players.length % 4 !== 0 && (
+            {selected.size} selected
+            {selected.size >= 4 && selected.size % 4 !== 0 && (
               <span className="text-yellow-400 ml-2">
-                (need {4 - (players.length % 4)} more for full courts)
+                (need {4 - (selected.size % 4)} more for full courts)
               </span>
             )}
           </div>

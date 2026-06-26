@@ -13,9 +13,16 @@ export default function Leaderboard({ players, rounds }) {
 
   return (
     <div className="bg-slate-800 rounded-2xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-700 flex items-center gap-2">
-        <Trophy className="w-5 h-5 text-yellow-400" />
-        <span className="font-semibold text-white">Leaderboard</span>
+      <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-yellow-400" />
+          <span className="font-semibold text-white">Leaderboard</span>
+        </div>
+        <div className="flex gap-4 text-xs text-slate-500 font-medium">
+          <span className="w-8 text-center">W</span>
+          <span className="w-8 text-center">T</span>
+          <span className="w-8 text-center">P</span>
+        </div>
       </div>
       <div className="divide-y divide-slate-700">
         {board.map((p, i) => (
@@ -25,9 +32,10 @@ export default function Leaderboard({ players, rounds }) {
           >
             <div className="flex items-center justify-center w-6">{medal(i)}</div>
             <div className="flex-1 font-medium text-white">{p.name}</div>
-            <div className="text-right">
-              <div className="text-green-400 font-bold text-lg leading-none">{p.wins}W</div>
-              <div className="text-slate-500 text-xs mt-0.5">{p.score} pts · {p.played}P</div>
+            <div className="flex gap-4 text-sm">
+              <span className="w-8 text-center text-green-400 font-bold">{p.wins}</span>
+              <span className="w-8 text-center text-yellow-400 font-bold">{p.ties}</span>
+              <span className="w-8 text-center text-slate-400">{p.played}</span>
             </div>
           </div>
         ))}

@@ -1,4 +1,4 @@
-import { Trophy, Users, History, Plus, Play, BarChart3 } from 'lucide-react';
+import { Beer, Users, History, Plus, Play, BarChart3 } from 'lucide-react';
 
 export default function Home({ onNavigate, historyCount, playerCount, activeTournament }) {
   return (
@@ -6,7 +6,7 @@ export default function Home({ onNavigate, historyCount, playerCount, activeTour
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
-            <Trophy className="w-8 h-8 text-green-400" />
+            <Beer className="w-8 h-8 text-green-400" />
           </div>
           <h1 className="text-3xl font-bold text-white">PadelTOP</h1>
           <p className="text-slate-400 mt-1">Tournament Manager</p>

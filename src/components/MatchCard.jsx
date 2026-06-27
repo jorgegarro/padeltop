@@ -14,8 +14,7 @@ export default function MatchCard({ match, players, pointsPerMatch, scoreType, g
   const options = [];
   for (let i = 0; i <= pointsPerMatch; i++) options.push(i);
 
-  const gameOptions = [];
-  for (let i = 0; i <= (gamesPerSet || 6); i++) gameOptions.push(i);
+  const gameOptions = [0, 1, 2, 3, 4, 5, 6, 7];
 
   const handleSave = () => {
     if (isGames) {

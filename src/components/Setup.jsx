@@ -9,6 +9,9 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
     pointsPerMatch: 32,
     type: 'americano',
     rounds: 4,
+    scoreType: 'points',
+    gamesPerSet: 6,
+    numberOfSets: 3,
   });
   const [selected, setSelected] = useState(new Set());
   const [couples, setCouples] = useState([]);
@@ -88,30 +91,87 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">
-                  <Layout className="inline w-4 h-4 mr-1" />Courts
-                </label>
-                <input
-                  type="number" min="1" max="10"
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500"
-                  value={config.courts}
-                  onChange={(e) => setConfig({ ...config, courts: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">
-                  <Target className="inline w-4 h-4 mr-1" />Points/Match
-                </label>
-                <input
-                  type="number" min="1" max="100"
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500"
-                  value={config.pointsPerMatch}
-                  onChange={(e) => setConfig({ ...config, pointsPerMatch: Number(e.target.value) })}
-                />
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">
+                <Layout className="inline w-4 h-4 mr-1" />Courts
+              </label>
+              <select
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer"
+                value={config.courts}
+                onChange={(e) => setConfig({ ...config, courts: Number(e.target.value) })}
+              >
+                {[1,2,3,4,5,6,7,8,9,10].map((v) => (
+                  <option key={v} value={v}>{v} court{v > 1 ? 's' : ''}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-400 mb-2">Score Type</label>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { value: 'points', label: 'Points', desc: 'Play to a fixed total' },
+                  { value: 'games', label: 'Games', desc: 'Play sets of games' },
+                ].map((t) => (
+                  <button
+                    key={t.value}
+                    onClick={() => setConfig({ ...config, scoreType: t.value })}
+                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                      config.scoreType === t.value
+                        ? 'border-green-500 bg-green-500/10'
+                        : 'border-slate-600 bg-slate-700 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="font-semibold text-white">{t.label}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{t.desc}</div>
+                  </button>
+                ))}
               </div>
             </div>
+
+            {config.scoreType === 'points' ? (
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">
+                  <Target className="inline w-4 h-4 mr-1" />Points per Match
+                </label>
+                <select
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer"
+                  value={config.pointsPerMatch}
+                  onChange={(e) => setConfig({ ...config, pointsPerMatch: Number(e.target.value) })}
+                >
+                  {[16,20,24,28,32,36,40,48].map((v) => (
+                    <option key={v} value={v}>{v} points</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Games per Set</label>
+                  <select
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer"
+                    value={config.gamesPerSet}
+                    onChange={(e) => setConfig({ ...config, gamesPerSet: Number(e.target.value) })}
+                  >
+                    {[4,6,8,9].map((v) => (
+                      <option key={v} value={v}>{v} games</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Number of Sets</label>
+                  <select
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer"
+                    value={config.numberOfSets}
+                    onChange={(e) => setConfig({ ...config, numberOfSets: Number(e.target.value) })}
+                  >
+                    {[1,2,3,5].map((v) => (
+                      <option key={v} value={v}>{v} set{v > 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm text-slate-400 mb-2">Tournament Type</label>

@@ -9,15 +9,15 @@ const TABS = ['Leaderboard', 'Schedule', 'Players'];
 
 export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
   const [tab, setTab] = useState('Leaderboard');
-  const { name, type, players, rounds, courts, pointsPerMatch } = tournament;
+  const { name, type, players, rounds, courts, pointsPerMatch, scoreType, gamesPerSet, numberOfSets } = tournament;
 
-  const handleScoreUpdate = (roundNum, matchId, s1, s2) => {
+  const handleScoreUpdate = (roundNum, matchId, s1, s2, sets, setWinner) => {
     const newRounds = rounds.map((r) => {
       if (r.round !== roundNum) return r;
       return {
         ...r,
         matches: r.matches.map((m) =>
-          m.id === matchId ? { ...m, score1: s1, score2: s2, played: true } : m
+          m.id === matchId ? { ...m, score1: s1, score2: s2, played: true, ...(sets ? { sets, setWinner } : {}) } : m
         ),
       };
     });
@@ -91,6 +91,9 @@ export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
           rounds={rounds}
           players={players}
           pointsPerMatch={pointsPerMatch}
+          scoreType={scoreType}
+          gamesPerSet={gamesPerSet}
+          numberOfSets={numberOfSets}
           onScoreUpdate={handleScoreUpdate}
           onAddMexicanoRound={handleAddMexicanoRound}
           isMexicano={type === 'mexicano'}

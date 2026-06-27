@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import MatchCard from './MatchCard';
 
-export default function Schedule({ rounds, players, pointsPerMatch, onScoreUpdate, onAddMexicanoRound, isMexicano, allRoundsPlayed }) {
+export default function Schedule({ rounds, players, pointsPerMatch, scoreType, gamesPerSet, numberOfSets, onScoreUpdate, onAddMexicanoRound, isMexicano, allRoundsPlayed }) {
   const [openRound, setOpenRound] = useState(rounds.length);
 
   return (
@@ -36,7 +36,10 @@ export default function Schedule({ rounds, players, pointsPerMatch, onScoreUpdat
                     match={m}
                     players={players}
                     pointsPerMatch={pointsPerMatch}
-                    onSave={(id, s1, s2) => onScoreUpdate(r.round, id, s1, s2)}
+                    scoreType={scoreType}
+                    gamesPerSet={gamesPerSet}
+                    numberOfSets={numberOfSets}
+                    onSave={(id, s1, s2, sets, setWinner) => onScoreUpdate(r.round, id, s1, s2, sets, setWinner)}
                   />
                 ))}
               </div>

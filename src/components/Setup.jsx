@@ -145,21 +145,8 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
                 </select>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Games per Set</label>
-                  <select
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer"
-                    value={config.gamesPerSet}
-                    onChange={(e) => setConfig({ ...config, gamesPerSet: Number(e.target.value) })}
-                  >
-                    {[4,6,8,9].map((v) => (
-                      <option key={v} value={v}>{v} games</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Number of Sets</label>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Number of Sets</label>
                   <select
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer"
                     value={config.numberOfSets}
@@ -169,7 +156,6 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
                       <option key={v} value={v}>{v} set{v > 1 ? 's' : ''}</option>
                     ))}
                   </select>
-                </div>
               </div>
             )}
 

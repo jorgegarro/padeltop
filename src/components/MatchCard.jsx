@@ -2,20 +2,20 @@ import { useState } from 'react';
 import { CheckCircle, Clock } from 'lucide-react';
 
 export default function MatchCard({ match, players, pointsPerMatch, onSave }) {
-  const [s1, setS1] = useState(match.score1 !== null ? String(match.score1) : '');
-  const [s2, setS2] = useState(match.score2 !== null ? String(match.score2) : '');
+  const [s1, setS1] = useState(match.score1 !== null ? match.score1 : '');
   const [editing, setEditing] = useState(!match.played);
 
   const getName = (id) => players.find((p) => p.id === id)?.name ?? id;
 
+  const s2 = s1 !== '' ? pointsPerMatch - Number(s1) : '';
+
+  const options = [];
+  for (let i = 0; i <= pointsPerMatch; i++) options.push(i);
+
   const handleSave = () => {
     const n1 = Number(s1);
-    const n2 = Number(s2);
-    if (isNaN(n1) || isNaN(n2)) return;
-    if (n1 + n2 !== pointsPerMatch) {
-      alert(`Scores must add up to ${pointsPerMatch}`);
-      return;
-    }
+    const n2 = pointsPerMatch - n1;
+    if (s1 === '' || isNaN(n1)) return;
     onSave(match.id, n1, n2);
     setEditing(false);
   };
@@ -34,30 +34,29 @@ export default function MatchCard({ match, players, pointsPerMatch, onSave }) {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Team 1 */}
         <div className="flex-1 text-right">
           {match.team1.map((id) => (
             <div key={id} className="text-sm text-white leading-tight">{getName(id)}</div>
           ))}
         </div>
 
-        {/* Score */}
         <div className="flex items-center gap-1 px-2">
           {editing ? (
             <>
-              <input
-                type="number" min="0" max={pointsPerMatch}
-                className="w-10 bg-slate-700 border border-slate-600 rounded text-center text-white py-1 focus:outline-none focus:border-green-500"
+              <select
+                className="w-14 bg-slate-700 border border-slate-600 rounded text-center text-white py-1.5 focus:outline-none focus:border-green-500 appearance-none cursor-pointer"
                 value={s1}
-                onChange={(e) => setS1(e.target.value)}
-              />
-              <span className="text-slate-400">-</span>
-              <input
-                type="number" min="0" max={pointsPerMatch}
-                className="w-10 bg-slate-700 border border-slate-600 rounded text-center text-white py-1 focus:outline-none focus:border-green-500"
-                value={s2}
-                onChange={(e) => setS2(e.target.value)}
-              />
+                onChange={(e) => setS1(e.target.value === '' ? '' : Number(e.target.value))}
+              >
+                <option value="">-</option>
+                {options.map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+              <span className="text-slate-400 font-bold">-</span>
+              <div className="w-14 bg-slate-700 border border-slate-600 rounded text-center text-white py-1.5 text-sm">
+                {s2 !== '' ? s2 : '-'}
+              </div>
             </>
           ) : (
             <span className="text-white font-bold text-lg px-1">
@@ -66,7 +65,6 @@ export default function MatchCard({ match, players, pointsPerMatch, onSave }) {
           )}
         </div>
 
-        {/* Team 2 */}
         <div className="flex-1">
           {match.team2.map((id) => (
             <div key={id} className="text-sm text-white leading-tight">{getName(id)}</div>
@@ -78,13 +76,17 @@ export default function MatchCard({ match, players, pointsPerMatch, onSave }) {
         {editing ? (
           <button
             onClick={handleSave}
-            className="px-4 py-1.5 bg-green-500 hover:bg-green-400 text-white text-sm font-medium rounded-lg transition-colors"
+            disabled={s1 === ''}
+            className="px-4 py-1.5 bg-green-500 hover:bg-green-400 disabled:bg-slate-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
           >
             Save Score
           </button>
         ) : (
           <button
-            onClick={() => setEditing(true)}
+            onClick={() => {
+              setS1(match.score1 !== null ? match.score1 : '');
+              setEditing(true);
+            }}
             className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded-lg transition-colors"
           >
             Edit

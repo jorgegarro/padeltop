@@ -3,7 +3,7 @@ import { Trophy, Calendar, Home, Users, User } from 'lucide-react';
 import Schedule from './Schedule';
 import Leaderboard from './Leaderboard';
 import PlayerHistory from './PlayerHistory';
-import { generateMexicanoRound, getScoresMap } from '../utils/tournamentEngine';
+import { generateMexicanoRound, getScoresMap, getUsedPairsFromRounds } from '../utils/tournamentEngine';
 
 const TABS = ['Leaderboard', 'Schedule', 'Players'];
 
@@ -26,7 +26,8 @@ export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
 
   const handleAddMexicanoRound = () => {
     const scores = getScoresMap(players, rounds);
-    const nextRound = generateMexicanoRound(players, courts, rounds.length + 1, scores);
+    const usedPairs = getUsedPairsFromRounds(rounds);
+    const nextRound = generateMexicanoRound(players, courts, rounds.length + 1, scores, usedPairs);
     onUpdate({ ...tournament, rounds: [...rounds, nextRound] });
   };
 

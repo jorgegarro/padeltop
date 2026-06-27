@@ -44,9 +44,9 @@ export default function Tournament({ tournament, onUpdate, onFinish, onHome }) {
           <h1 className="text-2xl font-bold text-white">{name}</h1>
           <div className="flex items-center gap-3 mt-1">
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              type === 'americano' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
+              type === 'americano' ? 'bg-blue-500/20 text-blue-400' : type === 'couples' ? 'bg-pink-500/20 text-pink-400' : 'bg-purple-500/20 text-purple-400'
             }`}>
-              {type === 'americano' ? 'Americano' : 'Mexicano'}
+              {type === 'americano' ? 'Americano' : type === 'couples' ? 'Fixed Couples' : 'Mexicano'}
             </span>
             <span className="text-slate-500 text-xs">
               <Users className="inline w-3 h-3 mr-1" />{players.length} players

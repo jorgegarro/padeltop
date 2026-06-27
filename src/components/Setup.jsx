@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trophy, Layout, Target, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { Trophy, Layout, Target, ChevronRight, ChevronLeft, Check, Users } from 'lucide-react';
 
 export default function Setup({ registeredPlayers, onStart, onBack }) {
   const [step, setStep] = useState(1);
@@ -11,6 +11,8 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
     rounds: 4,
   });
   const [selected, setSelected] = useState(new Set());
+  const [couples, setCouples] = useState([]);
+  const [couplePickA, setCouplePickA] = useState(null);
 
   const toggle = (id) => {
     setSelected((prev) => {
@@ -29,10 +31,38 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
   };
 
   const selectedPlayers = registeredPlayers.filter((p) => selected.has(p.id));
-  const canProceed = selectedPlayers.length >= 4 && selectedPlayers.length % 4 === 0;
+  const isCouples = config.type === 'couples';
+  const canProceed = isCouples
+    ? selectedPlayers.length >= 4 && selectedPlayers.length % 2 === 0
+    : selectedPlayers.length >= 4 && selectedPlayers.length % 4 === 0;
 
   const handleStart = () => {
-    onStart({ ...config, players: selectedPlayers });
+    if (isCouples) {
+      onStart({ ...config, players: selectedPlayers, couples });
+    } else {
+      onStart({ ...config, players: selectedPlayers });
+    }
+  };
+
+  const pairedIds = new Set(couples.flat().map((p) => p.id));
+  const unpairedPlayers = selectedPlayers.filter((p) => !pairedIds.has(p.id));
+  const allPaired = couples.length === selectedPlayers.length / 2 && unpairedPlayers.length === 0;
+
+  const handleCouplePlayerClick = (player) => {
+    if (couplePickA === null) {
+      setCouplePickA(player);
+    } else {
+      if (couplePickA.id === player.id) {
+        setCouplePickA(null);
+        return;
+      }
+      setCouples((prev) => [...prev, [couplePickA, player]]);
+      setCouplePickA(null);
+    }
+  };
+
+  const removeCouple = (idx) => {
+    setCouples((prev) => prev.filter((_, i) => i !== idx));
   };
 
   if (step === 1) {
@@ -85,10 +115,11 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
 
             <div>
               <label className="block text-sm text-slate-400 mb-2">Tournament Type</label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {[
                   { value: 'americano', label: 'Americano', desc: 'Fixed partner rotation' },
                   { value: 'mexicano', label: 'Mexicano', desc: 'Dynamic ranking pairing' },
+                  { value: 'couples', label: 'Fixed Couples', desc: 'Pre-set teams round-robin' },
                 ].map((t) => (
                   <button
                     key={t.value}
@@ -139,6 +170,74 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
     );
   }
 
+  // Step 3: Form couples
+  if (step === 3) return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-lg">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
+            <Users className="w-8 h-8 text-green-400" />
+          </div>
+          <h1 className="text-3xl font-bold text-white">Form Couples</h1>
+          <p className="text-slate-400 mt-1">Tap two players to pair them</p>
+        </div>
+
+        <div className="bg-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+          {couples.length > 0 && (
+            <div className="space-y-2">
+              <label className="block text-sm text-slate-400 mb-1">Couples ({couples.length})</label>
+              {couples.map((c, i) => (
+                <div key={i} className="flex items-center justify-between bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
+                  <span className="text-white text-sm">{c[0].name} & {c[1].name}</span>
+                  <button onClick={() => removeCouple(i)} className="text-red-400 hover:text-red-300 text-xs">Remove</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {unpairedPlayers.length > 0 && (
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">
+                {couplePickA ? `Select partner for ${couplePickA.name}` : 'Select first player'}
+              </label>
+              <div className="space-y-2">
+                {unpairedPlayers.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleCouplePlayerClick(p)}
+                    className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-all ${
+                      couplePickA?.id === p.id
+                        ? 'bg-yellow-500/15 border border-yellow-500/40'
+                        : 'bg-slate-700 border border-transparent hover:border-slate-500'
+                    }`}
+                  >
+                    <span className="text-white">{p.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setStep(2)}
+              className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-colors"
+            >
+              Back
+            </button>
+            <button
+              disabled={!allPaired}
+              onClick={handleStart}
+              className="flex-1 py-3 bg-green-500 hover:bg-green-400 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
+            >
+              Start Tournament <Trophy className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
@@ -147,7 +246,9 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
             <Trophy className="w-8 h-8 text-green-400" />
           </div>
           <h1 className="text-3xl font-bold text-white">Select Players</h1>
-          <p className="text-slate-400 mt-1">Pick players for this tournament (multiples of 4)</p>
+          <p className="text-slate-400 mt-1">
+            {isCouples ? 'Pick players (even number, min 4)' : 'Pick players for this tournament (multiples of 4)'}
+          </p>
         </div>
 
         <div className="bg-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
@@ -189,10 +290,13 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
 
           <div className="text-sm text-slate-400">
             {selected.size} selected
-            {selected.size >= 4 && selected.size % 4 !== 0 && (
+            {!isCouples && selected.size >= 4 && selected.size % 4 !== 0 && (
               <span className="text-yellow-400 ml-2">
                 (need {4 - (selected.size % 4)} more for full courts)
               </span>
+            )}
+            {isCouples && selected.size >= 2 && selected.size % 2 !== 0 && (
+              <span className="text-yellow-400 ml-2">(need 1 more for even pairs)</span>
             )}
           </div>
 
@@ -203,13 +307,23 @@ export default function Setup({ registeredPlayers, onStart, onBack }) {
             >
               Back
             </button>
-            <button
-              disabled={!canProceed}
-              onClick={handleStart}
-              className="flex-1 py-3 bg-green-500 hover:bg-green-400 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
-            >
-              Start Tournament <Trophy className="w-4 h-4" />
-            </button>
+            {isCouples ? (
+              <button
+                disabled={!canProceed}
+                onClick={() => { setCouples([]); setCouplePickA(null); setStep(3); }}
+                className="flex-1 py-3 bg-green-500 hover:bg-green-400 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
+              >
+                Form Couples <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                disabled={!canProceed}
+                onClick={handleStart}
+                className="flex-1 py-3 bg-green-500 hover:bg-green-400 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors"
+              >
+                Start Tournament <Trophy className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>

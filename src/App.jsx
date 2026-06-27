@@ -5,7 +5,7 @@ import Setup from './components/Setup';
 import Tournament from './components/Tournament';
 import TournamentHistory from './components/TournamentHistory';
 import PlayerStats from './components/PlayerStats';
-import { generateAmericanoRounds, generateMexicanoRound } from './utils/tournamentEngine';
+import { generateAmericanoRounds, generateMexicanoRound, generateFixedCouplesRounds } from './utils/tournamentEngine';
 import { api } from './utils/api';
 import './index.css';
 
@@ -37,10 +37,12 @@ export default function App() {
   };
 
   const handleStartTournament = async (config) => {
-    const { players: tPlayers, type, courts } = config;
+    const { players: tPlayers, type, courts, couples } = config;
     let rounds;
     if (type === 'americano') {
       rounds = generateAmericanoRounds(tPlayers, courts);
+    } else if (type === 'couples') {
+      rounds = generateFixedCouplesRounds(couples, courts);
     } else {
       const scores = {};
       for (const p of tPlayers) scores[p.id] = 0;

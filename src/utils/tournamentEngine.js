@@ -175,6 +175,55 @@ export function getScoresMap(players, rounds) {
   return scores;
 }
 
+export function generateFixedCouplesRounds(couples, courts) {
+  const n = couples.length;
+  const rounds = [];
+  const allMatches = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      allMatches.push({ c1: i, c2: j });
+    }
+  }
+
+  let matchIdx = 0;
+  let roundNum = 0;
+  while (matchIdx < allMatches.length) {
+    const roundMatches = [];
+    const usedInRound = new Set();
+    const remaining = allMatches.slice(matchIdx);
+    const toRemove = [];
+
+    for (let k = 0; k < remaining.length; k++) {
+      const { c1, c2 } = remaining[k];
+      if (usedInRound.has(c1) || usedInRound.has(c2)) continue;
+      if (roundMatches.length >= courts) break;
+      usedInRound.add(c1);
+      usedInRound.add(c2);
+      roundMatches.push({
+        id: `r${roundNum}m${roundMatches.length}`,
+        team1: [couples[c1][0].id, couples[c1][1].id],
+        team2: [couples[c2][0].id, couples[c2][1].id],
+        court: roundMatches.length + 1,
+        score1: null,
+        score2: null,
+        played: false,
+      });
+      toRemove.push(matchIdx + k);
+    }
+
+    if (roundMatches.length === 0) break;
+    rounds.push({ round: roundNum + 1, matches: roundMatches });
+    roundNum++;
+    // Remove scheduled matches from allMatches by filtering
+    const removeSet = new Set(toRemove);
+    const newAll = allMatches.filter((_, i) => !removeSet.has(i));
+    allMatches.splice(0, allMatches.length, ...newAll);
+    matchIdx = 0;
+  }
+
+  return rounds;
+}
+
 export function getUsedPairsFromRounds(rounds) {
   const pairKey = (a, b) => [a, b].sort().join('|');
   const used = new Set();

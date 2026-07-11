@@ -12,7 +12,8 @@ import './index.css';
 export default function App() {
   const [screen, setScreen] = useState('home');
   const [players, setPlayers] = useState([]);
-  const [tournament, setTournament] = useState(null);
+  const [activeTournaments, setActiveTournaments] = useState([]);
+  const [currentTournament, setCurrentTournament] = useState(null);
   const [history, setHistory] = useState([]);
   const [viewingHistory, setViewingHistory] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,10 +23,7 @@ export default function App() {
       .then(([p, h, active]) => {
         setPlayers(p);
         setHistory(h);
-        if (active) {
-          setTournament(active);
-          setScreen('tournament');
-        }
+        setActiveTournaments(active || []);
       })
       .catch((e) => console.error('Failed to load data:', e))
       .finally(() => setLoading(false));
@@ -37,12 +35,9 @@ export default function App() {
   };
 
   const handleStartTournament = async (config) => {
-    if (tournament) {
-      const played = tournament.rounds.reduce((a, r) => a + r.matches.filter((m) => m.played).length, 0);
-      const msg = played > 0
-        ? `There is an active tournament "${tournament.name}" with ${played} match(es) played. Starting a new one will replace it and all scores will be lost. Continue?`
-        : `There is an active tournament "${tournament.name}". Starting a new one will replace it. Continue?`;
-      if (!window.confirm(msg)) return;
+    const duplicate = history.find((t) => t.name === config.name);
+    if (duplicate) {
+      if (!window.confirm(`A tournament named "${config.name}" already exists. Create another one with the same name?`)) return;
     }
     const { players: tPlayers, type, courts, couples } = config;
     let rounds;
@@ -55,26 +50,35 @@ export default function App() {
       for (const p of tPlayers) scores[p.id] = 0;
       rounds = [generateMexicanoRound(tPlayers, courts, 1, scores)];
     }
-    const t = { ...config, id: crypto.randomUUID(), createdAt: new Date().toISOString(), rounds };
-    setTournament(t);
+    const t = { ...config, id: crypto.randomUUID(), createdAt: new Date().toISOString(), rounds, active: true };
     await api.setActive(t);
+    setActiveTournaments((prev) => [t, ...prev]);
     setHistory((prev) => [t, ...prev]);
+    setCurrentTournament(t);
+    setScreen('tournament');
+  };
+
+  const handleResumeTournament = (t) => {
+    setCurrentTournament(t);
     setScreen('tournament');
   };
 
   const handleUpdateTournament = async (updated) => {
-    setTournament(updated);
+    setCurrentTournament(updated);
     await api.setActive(updated);
+    setActiveTournaments((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
     setHistory((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
   };
 
   const handleFinishTournament = async () => {
-    if (tournament) {
-      await api.saveTournament({ ...tournament, active: false });
-      setHistory((prev) => prev.map((t) => (t.id === tournament.id ? { ...tournament, active: false } : t)));
+    if (currentTournament) {
+      const finished = { ...currentTournament, active: false };
+      await api.saveTournament(finished);
+      await api.deactivate(currentTournament.id);
+      setActiveTournaments((prev) => prev.filter((t) => t.id !== currentTournament.id));
+      setHistory((prev) => prev.map((t) => (t.id === currentTournament.id ? finished : t)));
     }
-    await api.clearActive();
-    setTournament(null);
+    setCurrentTournament(null);
     setScreen('home');
   };
 
@@ -86,6 +90,7 @@ export default function App() {
   const handleDeleteHistorical = async (id) => {
     await api.deleteTournament(id);
     setHistory((prev) => prev.filter((t) => t.id !== id));
+    setActiveTournaments((prev) => prev.filter((t) => t.id !== id));
   };
 
   if (loading) {
@@ -105,7 +110,8 @@ export default function App() {
         onNavigate={setScreen}
         historyCount={history.length}
         playerCount={players.length}
-        activeTournament={tournament}
+        activeTournaments={activeTournaments}
+        onResumeTournament={handleResumeTournament}
       />
     );
   }
@@ -172,10 +178,10 @@ export default function App() {
     );
   }
 
-  if (screen === 'tournament' && tournament) {
+  if (screen === 'tournament' && currentTournament) {
     return (
       <Tournament
-        tournament={tournament}
+        tournament={currentTournament}
         onUpdate={handleUpdateTournament}
         onFinish={handleFinishTournament}
         onHome={() => setScreen('home')}
@@ -183,5 +189,5 @@ export default function App() {
     );
   }
 
-  return <Home onNavigate={setScreen} historyCount={history.length} playerCount={players.length} activeTournament={tournament} />;
+  return <Home onNavigate={setScreen} historyCount={history.length} playerCount={players.length} activeTournaments={activeTournaments} onResumeTournament={handleResumeTournament} />;
 }

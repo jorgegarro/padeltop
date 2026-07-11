@@ -1,6 +1,6 @@
 import { Beer, Users, History, Plus, Play, BarChart3 } from 'lucide-react';
 
-export default function Home({ onNavigate, historyCount, playerCount, activeTournament }) {
+export default function Home({ onNavigate, historyCount, playerCount, activeTournaments, onResumeTournament }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
@@ -13,10 +13,11 @@ export default function Home({ onNavigate, historyCount, playerCount, activeTour
         </div>
 
         <div className="space-y-3">
-          {activeTournament && (
+          {activeTournaments && activeTournaments.length > 0 && activeTournaments.map((t) => (
             <button
-              onClick={() => onNavigate('tournament')}
-              className="w-full bg-yellow-500/10 hover:bg-yellow-500/15 border border-yellow-500/30 hover:border-yellow-500/60 rounded-2xl p-5 text-left transition-all group animate-pulse-subtle"
+              key={t.id}
+              onClick={() => onResumeTournament(t)}
+              className="w-full bg-yellow-500/10 hover:bg-yellow-500/15 border border-yellow-500/30 hover:border-yellow-500/60 rounded-2xl p-5 text-left transition-all group"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center group-hover:bg-yellow-500/30 transition-colors">
@@ -24,11 +25,11 @@ export default function Home({ onNavigate, historyCount, playerCount, activeTour
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-white">Resume Tournament</div>
-                  <div className="text-sm text-yellow-400/80">{activeTournament.name}</div>
+                  <div className="text-sm text-yellow-400/80">{t.name}</div>
                 </div>
               </div>
             </button>
-          )}
+          ))}
 
           <button
             onClick={() => onNavigate('players')}

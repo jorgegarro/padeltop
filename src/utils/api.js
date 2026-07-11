@@ -20,5 +20,5 @@ export const api = {
 
   getActive: () => request('/api/active'),
   setActive: (t) => request(`/api/active/${t.id}`, { method: 'PUT', body: JSON.stringify(t) }),
-  clearActive: () => request('/api/active', { method: 'DELETE' }),
+  deactivate: (id) => request(`/api/active/${id}`, { method: 'DELETE' }),
 };

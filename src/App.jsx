@@ -37,6 +37,13 @@ export default function App() {
   };
 
   const handleStartTournament = async (config) => {
+    if (tournament) {
+      const played = tournament.rounds.reduce((a, r) => a + r.matches.filter((m) => m.played).length, 0);
+      const msg = played > 0
+        ? `There is an active tournament "${tournament.name}" with ${played} match(es) played. Starting a new one will replace it and all scores will be lost. Continue?`
+        : `There is an active tournament "${tournament.name}". Starting a new one will replace it. Continue?`;
+      if (!window.confirm(msg)) return;
+    }
     const { players: tPlayers, type, courts, couples } = config;
     let rounds;
     if (type === 'americano') {
